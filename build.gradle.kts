@@ -4,9 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
+    `maven-publish`
 }
 
-group = "org.jetbrains.mcp"
+group = "org.jetbrains.kotlinx.mcp"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -27,7 +28,23 @@ dependencies {
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlinx.coroutines.debug)
+}
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+
+            from(components["java"])
+        }
+    }
+}
+
+tasks.create<Jar>("sourcesJar") {
+    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
 }
 
 tasks.test {
