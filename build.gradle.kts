@@ -30,7 +30,24 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.debug)
 }
 
+val spaceUsername = System.getenv("SPACE_PACKAGES_USERNAME")
+    ?: project.findProperty("kotlin.mcp.sdk.packages.username") as String?
+
+val spacePassword = System.getenv("SPACE_PACKAGES_PASSWORD")
+    ?: project.findProperty("kotlin.mcp.sdk.packages.password") as String?
+
 publishing {
+    repositories {
+        maven {
+            url = uri("https://maven.pkg.jetbrains.space/public/p/kotlin-mcp-sdk/sdk")
+            name = "Space"
+            credentials {
+                username = spaceUsername
+                password = spacePassword
+            }
+        }
+    }
+
     publications {
         create<MavenPublication>("maven") {
             groupId = project.group.toString()
