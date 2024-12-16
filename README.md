@@ -17,11 +17,11 @@ The Model Context Protocol allows applications to provide context for LLMs in a 
 
 ## Installation
 
-Add the Space repository to your build file:
+Add the new repository to your build file:
 
 ```kotlin
 repositories {
-    maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlin-mcp-sdk/sdk") }
+    maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlin-mcp-sdk/sdk")
 }
 ```
 
@@ -29,7 +29,7 @@ Add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.JetBrains:mcp-kotlin-sdk:1.0-SNAPSHOT")
+    implementation("org.jetbrains.kotlinx:kotlinx-mcp-sdk:0.1.0")
 }
 ```
 

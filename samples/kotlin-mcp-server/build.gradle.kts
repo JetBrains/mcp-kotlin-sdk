@@ -10,10 +10,10 @@ application {
 
 
 group = "org.example"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 dependencies {
-    implementation("com.github.JetBrains:mcp-kotlin-sdk:b1b0238")
+    implementation("org.jetbrains.kotlinx:kotlinx-mcp-sdk:0.1.0")
     implementation("org.slf4j:slf4j-nop:2.0.9")
 
     testImplementation(kotlin("test"))

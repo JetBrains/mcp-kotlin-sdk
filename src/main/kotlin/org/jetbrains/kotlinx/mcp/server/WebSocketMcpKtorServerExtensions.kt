@@ -4,8 +4,8 @@ import org.jetbrains.kotlinx.mcp.Implementation
 import org.jetbrains.kotlinx.mcp.ServerCapabilities
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import org.jetbrains.kotlinx.mcp.LIB_VERSION
 import org.jetbrains.kotlinx.mcp.shared.IMPLEMENTATION_NAME
-import shared.LIB_VERSION
 
 /**
  * Registers a WebSocket route that establishes an MCP (Model Context Protocol) server session.

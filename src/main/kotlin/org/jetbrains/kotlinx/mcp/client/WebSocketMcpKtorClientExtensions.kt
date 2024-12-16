@@ -3,8 +3,8 @@ package org.jetbrains.kotlinx.mcp.client
 import org.jetbrains.kotlinx.mcp.Implementation
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
+import org.jetbrains.kotlinx.mcp.LIB_VERSION
 import org.jetbrains.kotlinx.mcp.shared.IMPLEMENTATION_NAME
-import shared.LIB_VERSION
 
 /**
  * Returns a new WebSocket transport for the Model Context Protocol using the provided HttpClient.

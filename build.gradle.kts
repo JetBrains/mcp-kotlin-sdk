@@ -15,8 +15,8 @@ tasks.withType<PublishToMavenRepository>().configureEach {
     dependsOn(tasks.withType<Sign>())
 }
 
-group = "org.jetbrains.kotlinx.mcp"
-version = "1.0-SNAPSHOT"
+group = "org.jetbrains.kotlinx"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -43,6 +43,11 @@ val spaceUsername = System.getenv("SPACE_PACKAGES_USERNAME")
 
 val spacePassword = System.getenv("SPACE_PACKAGES_PASSWORD")
     ?: project.findProperty("kotlin.mcp.sdk.packages.password") as String?
+
+val sources = tasks.create<Jar>("sourcesJar") {
+    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
+}
 
 publishing {
     repositories {
@@ -72,6 +77,7 @@ publishing {
         pom.configureMavenCentralMetadata()
         signPublicationIfKeyPresent()
         artifact(javadocJar)
+        artifact(sources)
     }
 }
 
@@ -141,9 +147,14 @@ infix fun <T> Property<T>.by(value: T) {
     set(value)
 }
 
-tasks.create<Jar>("sourcesJar") {
-    from(sourceSets["main"].allSource)
-    archiveClassifier.set("sources")
+tasks.create<Jar>("localJar") {
+    dependsOn(tasks.jar)
+
+    archiveFileName = "kotlinx-mcp-sdk.jar"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(configurations.runtimeClasspath.map {
+        it.map { if (it.isDirectory) it else zipTree(it) }
+    })
 }
 
 tasks.test {
@@ -152,15 +163,20 @@ tasks.test {
 
 abstract class GenerateLibVersionTask @Inject constructor(
     @get:Input val libVersion: String,
-    @get:OutputDirectory val sourcesDir: File
+    @get:OutputDirectory val sourcesDir: File,
 ) : DefaultTask() {
     @TaskAction
     fun generate() {
-        val sourceFile = File(sourcesDir, "LibVersion.kt")
+        val sourceFile = File(sourcesDir.resolve("org/jetbrains/kotlinx/mcp"), "LibVersion.kt")
+
+        if (!sourceFile.exists()) {
+            sourceFile.parentFile.mkdirs()
+            sourceFile.createNewFile()
+        }
 
         sourceFile.writeText(
             """
-            package shared
+            package org.jetbrains.kotlinx.mcp
 
             const val LIB_VERSION = "$libVersion"
 
