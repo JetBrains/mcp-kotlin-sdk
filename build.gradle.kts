@@ -7,6 +7,14 @@ plugins {
     `maven-publish`
 }
 
+if (project.getSensitiveProperty("libs.sign.key.private") != null) {
+    apply(plugin = "signing")
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    dependsOn(tasks.withType<Sign>())
+}
+
 group = "org.jetbrains.kotlinx.mcp"
 version = "1.0-SNAPSHOT"
 
@@ -57,6 +65,80 @@ publishing {
             from(components["java"])
         }
     }
+
+    val javadocJar = configureEmptyJavadocArtifact()
+
+    publications.withType(MavenPublication::class).all {
+        pom.configureMavenCentralMetadata()
+        signPublicationIfKeyPresent()
+        artifact(javadocJar)
+    }
+}
+
+fun MavenPom.configureMavenCentralMetadata() {
+    name by project.name
+    description by "Kotlin implementation of the Model Context Protocol (MCP)"
+    url by "https://github.com/JetBrains/mcp-kotlin-sdk"
+
+    licenses {
+        license {
+            name by "The Apache Software License, Version 2.0"
+            url by "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution by "repo"
+        }
+    }
+
+    developers {
+        developer {
+            id by "JetBrains"
+            name by "JetBrains Team"
+            organization by "JetBrains"
+            organizationUrl by "https://www.jetbrains.com"
+        }
+    }
+
+    scm {
+        url by "https://github.com/JetBrains/mcp-kotlin-sdk"
+        connection by "scm:git:git://github.com/JetBrains/mcp-kotlin-sdk.git"
+        developerConnection by "scm:git:git@github.com:JetBrains/mcp-kotlin-sdk.git"
+    }
+}
+
+fun configureEmptyJavadocArtifact(): org.gradle.jvm.tasks.Jar {
+    val javadocJar by project.tasks.creating(Jar::class) {
+        archiveClassifier.set("javadoc")
+        // contents are deliberately left empty
+        // https://central.sonatype.org/publish/requirements/#supply-javadoc-and-sources
+    }
+    return javadocJar
+}
+
+fun MavenPublication.signPublicationIfKeyPresent() {
+    val keyId = project.getSensitiveProperty("libs.sign.key.id")
+    val signingKey = project.getSensitiveProperty("libs.sign.key.private")
+    val signingKeyPassphrase = project.getSensitiveProperty("libs.sign.passphrase")
+
+    if (!signingKey.isNullOrBlank()) {
+        the<SigningExtension>().apply {
+            useInMemoryPgpKeys(keyId, signingKey, signingKeyPassphrase)
+
+            sign(this@signPublicationIfKeyPresent)
+        }
+    }
+}
+
+fun Project.getSensitiveProperty(name: String?): String? {
+    if (name == null) {
+        error("Expected not null property '$name' for publication repository config")
+    }
+
+    return project.findProperty(name) as? String
+        ?: System.getenv(name)
+        ?: System.getProperty(name)
+}
+
+infix fun <T> Property<T>.by(value: T) {
+    set(value)
 }
 
 tasks.create<Jar>("sourcesJar") {
@@ -93,7 +175,7 @@ dokka {
     dokkaSourceSets.main {
         sourceLink {
             localDirectory.set(file("src/main/kotlin"))
-            remoteUrl("https://github.com/e5l/mcp-kotlin-sdk")
+            remoteUrl("https://github.com/JetBrains/mcp-kotlin-sdk")
             remoteLineSuffix.set("#L")
             documentedVisibilities(VisibilityModifier.Public)
         }
