@@ -1,5 +1,3 @@
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import org.jetbrains.kotlinx.mcp.JSONRPCMessage
 import org.jetbrains.kotlinx.mcp.shared.Transport
 
@@ -7,8 +5,6 @@ import org.jetbrains.kotlinx.mcp.shared.Transport
  * In-memory transport for creating clients and servers that talk to each other within the same process.
  */
 class InMemoryTransport : Transport {
-    private val scope = CoroutineScope(SupervisorJob())
-
     private var otherTransport: InMemoryTransport? = null
     private val messageQueue: MutableList<JSONRPCMessage> = mutableListOf()
 
