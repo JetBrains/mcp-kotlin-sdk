@@ -142,4 +142,4 @@ Issues and pull requests are welcome on GitHub at https://github.com/JetBrains/m
 
 ## License
 
-This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License — see the [LICENSE](LICENSE) file for details.
