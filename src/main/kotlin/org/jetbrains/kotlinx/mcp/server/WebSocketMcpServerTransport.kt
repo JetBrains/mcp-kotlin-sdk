@@ -10,7 +10,7 @@ import org.jetbrains.kotlinx.mcp.shared.WebSocketMcpTransport
  *
  * @property session The WebSocket server session used for communication.
  */
-class WebSocketMcpServerTransport(
+public class WebSocketMcpServerTransport(
     override val session: WebSocketServerSession,
 ) : WebSocketMcpTransport() {
     override suspend fun initializeSession() {

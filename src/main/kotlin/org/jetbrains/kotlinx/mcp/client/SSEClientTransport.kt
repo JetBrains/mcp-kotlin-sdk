@@ -18,7 +18,7 @@ import kotlin.time.Duration
  * Client transport for SSE: this will connect to a server using Server-Sent Events for receiving
  * messages and make separate POST requests for sending messages.
  */
-class SSEClientTransport(
+public class SSEClientTransport(
     private val client: HttpClient,
     private val urlString: String?,
     private val reconnectionTime: Duration? = null,

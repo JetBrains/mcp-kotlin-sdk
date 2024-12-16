@@ -16,8 +16,8 @@ private val logger = KotlinLogging.logger {}
  * @property capabilities The capabilities this server supports.
  * @property enforceStrictCapabilities Whether to strictly enforce capabilities when interacting with clients.
  */
-class ServerOptions(
-    val capabilities: ServerCapabilities,
+public class ServerOptions(
+    public val capabilities: ServerCapabilities,
     enforceStrictCapabilities: Boolean = true,
 ) : ProtocolOptions(enforceStrictCapabilities = enforceStrictCapabilities)
 

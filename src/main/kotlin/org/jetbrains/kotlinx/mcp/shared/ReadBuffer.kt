@@ -10,14 +10,14 @@ import kotlinx.serialization.encodeToString
 /**
  * Buffers a continuous stdio stream into discrete JSON-RPC messages.
  */
-class ReadBuffer {
+public class ReadBuffer {
     private val buffer: Buffer = Buffer()
 
-    fun append(chunk: ByteArray) {
+    public fun append(chunk: ByteArray) {
         buffer.writeFully(chunk)
     }
 
-    fun readMessage(): JSONRPCMessage? {
+    public fun readMessage(): JSONRPCMessage? {
         if (buffer.exhausted()) return null
         var lfIndex = buffer.indexOf('\n'.code.toByte())
         val line = when (lfIndex) {
@@ -41,7 +41,7 @@ class ReadBuffer {
         return deserializeMessage(line)
     }
 
-    fun clear() {
+    public fun clear() {
         buffer.clear()
     }
 }

@@ -13,7 +13,7 @@ import org.jetbrains.kotlinx.mcp.shared.IMPLEMENTATION_NAME
  * @param options Optional server configuration settings for the MCP server.
  * @param handler A suspend function that defines the server's behavior.
  */
-fun Route.mcpWebSocket(
+public fun Route.mcpWebSocket(
     options: ServerOptions? = null,
     handler: suspend Server.() -> Unit = {},
 ) {
@@ -29,7 +29,7 @@ fun Route.mcpWebSocket(
  * @param options Optional server configuration settings for the MCP server.
  * @param handler A suspend function that defines the server's behavior.
  */
-fun Route.mcpWebSocket(
+public fun Route.mcpWebSocket(
     path: String,
     options: ServerOptions? = null,
     handler: suspend Server.() -> Unit = {},
@@ -44,7 +44,7 @@ fun Route.mcpWebSocket(
  *
  * @param handler A suspend function that defines the behavior of the transport layer.
  */
-fun Route.mcpWebSocketTransport(
+public fun Route.mcpWebSocketTransport(
     handler: suspend WebSocketMcpServerTransport.() -> Unit = {},
 ) {
     webSocket {
@@ -61,7 +61,7 @@ fun Route.mcpWebSocketTransport(
  * @param path The URL path at which to register the WebSocket route.
  * @param handler A suspend function that defines the behavior of the transport layer.
  */
-fun Route.mcpWebSocketTransport(
+public fun Route.mcpWebSocketTransport(
     path: String,
     handler: suspend WebSocketMcpServerTransport.() -> Unit = {},
 ) {

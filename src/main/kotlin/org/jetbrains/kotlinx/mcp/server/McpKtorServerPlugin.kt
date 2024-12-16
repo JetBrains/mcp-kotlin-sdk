@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Configures the Ktor Application to handle Model Context Protocol (MCP) over Server-Sent Events (SSE).
  */
-fun Application.MCP(block: () -> Server) {
+public fun Application.MCP(block: () -> Server) {
     val servers = ConcurrentMap<String, Server>()
 
     install(SSE)

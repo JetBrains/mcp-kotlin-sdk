@@ -10,14 +10,14 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.kotlinx.mcp.shared.McpJson
 import java.util.concurrent.atomic.AtomicLong
 
-const val LATEST_PROTOCOL_VERSION = "2024-11-05"
+public const val LATEST_PROTOCOL_VERSION: String = "2024-11-05"
 
-val SUPPORTED_PROTOCOL_VERSIONS = arrayOf(
+public val SUPPORTED_PROTOCOL_VERSIONS: Array<String> = arrayOf(
     LATEST_PROTOCOL_VERSION,
     "2024-10-07",
 )
 
-const val JSONRPC_VERSION: String = "2.0"
+public const val JSONRPC_VERSION: String = "2.0"
 
 private val REQUEST_MESSAGE_ID = AtomicLong(0L)
 
@@ -25,27 +25,27 @@ private val REQUEST_MESSAGE_ID = AtomicLong(0L)
  * A progress token, used to associate progress notifications with the original request.
  * Stores message ID.
  */
-typealias ProgressToken = Long
+public typealias ProgressToken = Long
 
 /**
  * An opaque token used to represent a cursor for pagination.
  */
-typealias Cursor = String
+public typealias Cursor = String
 
 /**
  * Represents an entity that includes additional metadata in its responses.
  */
 @Serializable
-sealed interface WithMeta {
+public sealed interface WithMeta {
     /**
      * The protocol reserves this result property
      * to allow clients and servers to attach additional metadata to their responses.
      */
     @Suppress("PropertyName")
-    val _meta: JsonObject
+    public val _meta: JsonObject
 
-    companion object {
-        val Empty = CustomMeta()
+    public companion object {
+        public val Empty: CustomMeta = CustomMeta()
     }
 }
 
@@ -55,20 +55,20 @@ sealed interface WithMeta {
  * @param _meta The JSON object holding metadata. Defaults to an empty JSON object.
  */
 @Serializable
-class CustomMeta(override val _meta: JsonObject = EmptyJsonObject) : WithMeta
+public class CustomMeta(override val _meta: JsonObject = EmptyJsonObject) : WithMeta
 
 /**
  * Represents a method in the protocol, which can be predefined or custom.
  */
 @Serializable(with = RequestMethodSerializer::class)
-sealed interface Method {
-    val value: String
+public sealed interface Method {
+    public val value: String
 
     /**
      * Enum of predefined methods supported by the protocol.
      */
     @Serializable
-    enum class Defined(override val value: String) : Method {
+    public enum class Defined(override val value: String) : Method {
         Initialize("initialize"),
         Ping("ping"),
         ResourcesList("resources/list"),
@@ -99,15 +99,15 @@ sealed interface Method {
      * Represents a custom method defined by the user.
      */
     @Serializable
-    data class Custom(override val value: String) : Method
+    public data class Custom(override val value: String) : Method
 }
 
 /**
  * Represents a request in the protocol.
  */
 @Serializable(with = RequestPolymorphicSerializer::class)
-sealed interface Request {
-    val method: Method
+public sealed interface Request {
+    public val method: Method
 }
 
 /**
@@ -115,7 +115,7 @@ sealed interface Request {
  *
  * @return The JSON-RPC request representation.
  */
-fun Request.toJSON(): JSONRPCRequest {
+internal fun Request.toJSON(): JSONRPCRequest {
     return JSONRPCRequest(
         method = method.value,
         params = McpJson.encodeToJsonElement(this),
@@ -128,7 +128,7 @@ fun Request.toJSON(): JSONRPCRequest {
  *
  * @return The decoded [Request] or null
  */
-fun JSONRPCRequest.fromJSON(): Request? {
+internal fun JSONRPCRequest.fromJSON(): Request? {
     val serializer = selectRequestDeserializer(method)
     val params = params ?: return null
     return McpJson.decodeFromJsonElement<Request>(serializer, params)
@@ -140,14 +140,14 @@ fun JSONRPCRequest.fromJSON(): Request? {
  * @param method The method associated with the request.
  */
 @Serializable
-open class CustomRequest(override val method: Method) : Request
+public open class CustomRequest(override val method: Method) : Request
 
 /**
  * Represents a notification in the protocol.
  */
 @Serializable(with = NotificationPolymorphicSerializer::class)
-sealed interface Notification {
-    val method: Method
+public sealed interface Notification {
+    public val method: Method
 }
 
 /**
@@ -155,7 +155,7 @@ sealed interface Notification {
  *
  * @return The JSON-RPC notification representation.
  */
-fun Notification.toJSON(): JSONRPCNotification {
+internal fun Notification.toJSON(): JSONRPCNotification {
     val encoded = McpJson.encodeToJsonElement<Notification>(this)
     return JSONRPCNotification(
         method.value,
@@ -168,7 +168,7 @@ fun Notification.toJSON(): JSONRPCNotification {
  *
  * @return The decoded [Notification].
  */
-fun JSONRPCNotification.fromJSON(): Notification {
+internal fun JSONRPCNotification.fromJSON(): Notification {
     return McpJson.decodeFromJsonElement<Notification>(params)
 }
 
@@ -176,7 +176,7 @@ fun JSONRPCNotification.fromJSON(): Notification {
  * Represents the result of a request, including additional metadata.
  */
 @Serializable(with = RequestResultPolymorphicSerializer::class)
-sealed interface RequestResult : WithMeta
+public sealed interface RequestResult : WithMeta
 
 /**
  * An empty result for a request, containing optional metadata.
@@ -184,26 +184,26 @@ sealed interface RequestResult : WithMeta
  * @param _meta Additional metadata for the response. Defaults to an empty JSON object.
  */
 @Serializable
-data class EmptyRequestResult(
+public data class EmptyRequestResult(
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult, ClientResult
 
 /**
  * A uniquely identifying ID for a request in JSON-RPC.
  */
-typealias RequestId = Long
+public typealias RequestId = Long
 
 /**
  * Represents a JSON-RPC message in the protocol.
  */
 @Serializable(with = JSONRPCMessagePolymorphicSerializer::class)
-sealed interface JSONRPCMessage
+public sealed interface JSONRPCMessage
 
 /**
  * A request that expects a response.
  */
 @Serializable
-data class JSONRPCRequest(
+public data class JSONRPCRequest(
     val id: RequestId = REQUEST_MESSAGE_ID.incrementAndGet(),
     val method: String,
     val params: JsonElement? = null,
@@ -214,7 +214,7 @@ data class JSONRPCRequest(
  * A notification which does not expect a response.
  */
 @Serializable
-data class JSONRPCNotification(
+public data class JSONRPCNotification(
     val method: String,
     val params: JsonElement = EmptyJsonObject,
     val jsonrpc: String = JSONRPC_VERSION,
@@ -224,22 +224,22 @@ data class JSONRPCNotification(
  * A successful (non-error) response to a request.
  */
 @Serializable
-class JSONRPCResponse(
-    val id: RequestId,
-    val jsonrpc: String = JSONRPC_VERSION,
-    val result: RequestResult? = null,
-    val error: JSONRPCError? = null,
+public class JSONRPCResponse(
+    public val id: RequestId,
+    public val jsonrpc: String = JSONRPC_VERSION,
+    public val result: RequestResult? = null,
+    public val error: JSONRPCError? = null,
 ) : JSONRPCMessage
 
 /**
  * An incomplete set of error codes that may appear in JSON-RPC responses.
  */
 @Serializable(with = ErrorCodeSerializer::class)
-sealed interface ErrorCode {
-    val code: Int
+public sealed interface ErrorCode {
+    public val code: Int
 
     @Serializable
-    enum class Defined(override val code: Int) : ErrorCode {
+    public enum class Defined(override val code: Int) : ErrorCode {
         // SDK error codes
         ConnectionClosed(-1),
         RequestTimeout(-2),
@@ -254,14 +254,14 @@ sealed interface ErrorCode {
     }
 
     @Serializable
-    data class Unknown(override val code: Int) : ErrorCode
+    public data class Unknown(override val code: Int) : ErrorCode
 }
 
 /**
  * A response to a request that indicates an error occurred.
  */
 @Serializable
-data class JSONRPCError(
+public data class JSONRPCError(
     val code: ErrorCode,
     val message: String,
     val data: JsonObject = EmptyJsonObject,
@@ -278,7 +278,7 @@ data class JSONRPCError(
  * A client MUST NOT attempt to cancel its `initialize` request.
  */
 @Serializable
-data class CancelledNotification(
+public data class CancelledNotification(
     /**
      * The ID of the request to cancel.
      *
@@ -299,7 +299,7 @@ data class CancelledNotification(
  * Describes the name and version of an MCP implementation.
  */
 @Serializable
-data class Implementation(
+public data class Implementation(
     val name: String,
     val version: String,
 )
@@ -310,7 +310,7 @@ data class Implementation(
  * any client can define its own, additional capabilities.
  */
 @Serializable
-data class ClientCapabilities(
+public data class ClientCapabilities(
     /**
      * Experimental, non-standard capabilities that the client supports.
      */
@@ -325,7 +325,7 @@ data class ClientCapabilities(
     val roots: Roots? = null,
 ) {
     @Serializable
-    data class Roots(
+    public data class Roots(
         /**
          * Whether the client supports issuing notifications for changes to the root list.
          */
@@ -337,37 +337,37 @@ data class ClientCapabilities(
  * Represents a request sent by the client.
  */
 //@Serializable(with = ClientRequestPolymorphicSerializer::class)
-interface ClientRequest : Request
+public interface ClientRequest : Request
 
 /**
  * Represents a notification sent by the client.
  */
 @Serializable(with = ClientNotificationPolymorphicSerializer::class)
-sealed interface ClientNotification : Notification
+public sealed interface ClientNotification : Notification
 
 /**
  * Represents a result returned to the client.
  */
 @Serializable(with = ClientResultPolymorphicSerializer::class)
-sealed interface ClientResult : RequestResult
+public sealed interface ClientResult : RequestResult
 
 /**
  * Represents a request sent by the server.
  */
 //@Serializable(with = ServerRequestPolymorphicSerializer::class)
-sealed interface ServerRequest : Request
+public sealed interface ServerRequest : Request
 
 /**
  * Represents a notification sent by the server.
  */
 @Serializable(with = ServerNotificationPolymorphicSerializer::class)
-sealed interface ServerNotification : Notification
+public sealed interface ServerNotification : Notification
 
 /**
  * Represents a result returned by the server.
  */
 @Serializable(with = ServerResultPolymorphicSerializer::class)
-sealed interface ServerResult : RequestResult
+public sealed interface ServerResult : RequestResult
 
 /**
  * Represents a request or notification for an unknown method.
@@ -375,7 +375,7 @@ sealed interface ServerResult : RequestResult
  * @param method The method that is unknown.
  */
 @Serializable
-data class UnknownMethodRequestOrNotification(
+public data class UnknownMethodRequestOrNotification(
     override val method: Method,
 ) : ClientNotification, ClientRequest, ServerNotification, ServerRequest
 
@@ -383,8 +383,7 @@ data class UnknownMethodRequestOrNotification(
  * This request is sent from the client to the server when it first connects, asking it to begin initialization.
  */
 @Serializable
-data class InitializeRequest(
-
+public data class InitializeRequest(
     val protocolVersion: String,
     val capabilities: ClientCapabilities,
     val clientInfo: Implementation,
@@ -404,7 +403,7 @@ data class InitializeRequest(
  * @property tools Capabilities related to tools that can be called on the server.
  */
 @Serializable
-data class ServerCapabilities(
+public data class ServerCapabilities(
     val experimental: JsonObject? = EmptyJsonObject,
     val sampling: JsonObject? = EmptyJsonObject,
     val logging: JsonObject? = EmptyJsonObject,
@@ -418,7 +417,7 @@ data class ServerCapabilities(
      * @property listChanged Indicates if the server supports notifications when the prompt list changes.
      */
     @Serializable
-    data class Prompts(
+    public data class Prompts(
         /**
          * Whether this server supports issuing notifications for changes to the prompt list.
          */
@@ -432,7 +431,7 @@ data class ServerCapabilities(
      * @property listChanged Indicates if the server supports notifications when the resource list changes.
      */
     @Serializable
-    data class Resources(
+    public data class Resources(
         /**
          * Whether this server supports clients subscribing to resource updates.
          */
@@ -449,7 +448,7 @@ data class ServerCapabilities(
      * @property listChanged Indicates if the server supports notifications when the tool list changes.
      */
     @Serializable
-    data class Tools(
+    public data class Tools(
         /**
          * Whether this server supports issuing notifications for changes to the tool list.
          */
@@ -461,7 +460,7 @@ data class ServerCapabilities(
  * After receiving an initialized request from the client, the server sends this response.
  */
 @Serializable
-data class InitializeResult(
+public data class InitializeResult(
     /**
      * The version of the Model Context Protocol that the server wants to use. This may not match the version that the client requested. If the client cannot support this version, it MUST disconnect.
      */
@@ -475,7 +474,7 @@ data class InitializeResult(
  * This notification is sent from the client to the server after initialization has finished.
  */
 @Serializable
-class InitializedNotification : ClientNotification {
+public class InitializedNotification : ClientNotification {
     override val method: Method = Method.Defined.NotificationsInitialized
 }
 
@@ -484,7 +483,7 @@ class InitializedNotification : ClientNotification {
  * A ping, issued by either the server or the client, to check that the other party is still alive. The receiver must promptly respond, or else may be disconnected.
  */
 @Serializable
-class PingRequest : ServerRequest, ClientRequest {
+public class PingRequest : ServerRequest, ClientRequest {
     override val method: Method = Method.Defined.Ping
 }
 
@@ -492,16 +491,16 @@ class PingRequest : ServerRequest, ClientRequest {
  * Represents the base interface for progress tracking.
  */
 @Serializable
-sealed interface ProgressBase {
+public sealed interface ProgressBase {
     /**
      * The progress thus far. This should increase every time progress is made, even if the total is unknown.
      */
-    val progress: Int
+    public val progress: Int
 
     /**
      * Total number of items to a process (or total progress required), if known.
      */
-    val total: Double?
+    public val total: Double?
 }
 
 /* org.jetbrains.kotlinx.mcp.Progress notifications */
@@ -512,7 +511,7 @@ sealed interface ProgressBase {
  * @property total The total progress required, if known.
  */
 @Serializable
-open class Progress(
+public open class Progress(
     /**
      * The progress thus far. This should increase every time progress is made, even if the total is unknown.
      */
@@ -547,11 +546,11 @@ data class ProgressNotification(
  * Represents a request supporting pagination.
  */
 @Serializable
-sealed interface PaginatedRequest : Request, WithMeta {
+public sealed interface PaginatedRequest : Request, WithMeta {
     /**
      * The cursor indicating the pagination position.
      */
-    val cursor: Cursor?
+    public val cursor: Cursor?
     override val _meta: JsonObject
 }
 
@@ -559,12 +558,12 @@ sealed interface PaginatedRequest : Request, WithMeta {
  * Represents a paginated result of a request.
  */
 @Serializable
-sealed interface PaginatedResult : RequestResult {
+public sealed interface PaginatedResult : RequestResult {
     /**
      * An opaque token representing the pagination position after the last returned result.
      * If present, there may be more results available.
      */
-    val nextCursor: Cursor?
+    public val nextCursor: Cursor?
 }
 
 /* Resources */
@@ -572,16 +571,16 @@ sealed interface PaginatedResult : RequestResult {
  * The contents of a specific resource or sub-resource.
  */
 @Serializable(with = ResourceContentsPolymorphicSerializer::class)
-sealed interface ResourceContents {
+public sealed interface ResourceContents {
     /**
      * The URI of this resource.
      */
-    val uri: String
+    public val uri: String
 
     /**
      * The MIME type of this resource, if known.
      */
-    val mimeType: String?
+    public val mimeType: String?
 }
 
 /**
@@ -590,7 +589,7 @@ sealed interface ResourceContents {
  * @property text The text of the item. This must only be set if the item can actually be represented as text (not binary data).
  */
 @Serializable
-data class TextResourceContents(
+public data class TextResourceContents(
     val text: String,
     override val uri: String,
     override val mimeType: String?,
@@ -602,7 +601,7 @@ data class TextResourceContents(
  * @property blob A base64-encoded string representing the binary data of the item.
  */
 @Serializable
-data class BlobResourceContents(
+public data class BlobResourceContents(
     val blob: String,
     override val uri: String,
     override val mimeType: String?,
@@ -612,7 +611,7 @@ data class BlobResourceContents(
  * Represents resource contents with unknown or unspecified data.
  */
 @Serializable
-data class UnknownResourceContents(
+public data class UnknownResourceContents(
     override val uri: String,
     override val mimeType: String?,
 ) : ResourceContents
@@ -621,7 +620,7 @@ data class UnknownResourceContents(
  * A known resource that the server is capable of reading.
  */
 @Serializable
-data class Resource(
+public data class Resource(
     /**
      * The URI of this resource.
      */
@@ -649,7 +648,7 @@ data class Resource(
  * A template description for resources available on the server.
  */
 @Serializable
-data class ResourceTemplate(
+public data class ResourceTemplate(
     /**
      * A URI template (according to RFC 6570) that can be used to construct resource URIs.
      */
@@ -677,7 +676,7 @@ data class ResourceTemplate(
  * Sent from the client to request a list of resources the server has.
  */
 @Serializable
-data class ListResourcesRequest(
+public data class ListResourcesRequest(
     override val cursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject
 ) : ClientRequest, PaginatedRequest {
@@ -688,8 +687,8 @@ data class ListResourcesRequest(
  * The server's response to a resources/list request from the client.
  */
 @Serializable
-class ListResourcesResult(
-    val resources: List<Resource>,
+public class ListResourcesResult(
+    public val resources: List<Resource>,
     override val nextCursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult, PaginatedResult
@@ -698,7 +697,7 @@ class ListResourcesResult(
  * Sent from the client to request a list of resource templates the server has.
  */
 @Serializable
-data class ListResourceTemplatesRequest(
+public data class ListResourceTemplatesRequest(
     override val cursor: Cursor?,
     override val _meta: JsonObject = EmptyJsonObject
 ) : ClientRequest, PaginatedRequest {
@@ -709,8 +708,8 @@ data class ListResourceTemplatesRequest(
  * The server's response to a resources/templates/list request from the client.
  */
 @Serializable
-class ListResourceTemplatesResult(
-    val resourceTemplates: List<ResourceTemplate>,
+public class ListResourceTemplatesResult(
+    public val resourceTemplates: List<ResourceTemplate>,
     override val nextCursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult, PaginatedResult
@@ -719,7 +718,7 @@ class ListResourceTemplatesResult(
  * Sent from the client to the server to read a specific resource URI.
  */
 @Serializable
-data class ReadResourceRequest(
+public data class ReadResourceRequest(
     val uri: String,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ClientRequest, WithMeta {
@@ -730,8 +729,8 @@ data class ReadResourceRequest(
  * The server's response to a resources/read request from the client.
  */
 @Serializable
-class ReadResourceResult(
-    val contents: List<ResourceContents>,
+public class ReadResourceResult(
+    public val contents: List<ResourceContents>,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult
 
@@ -741,7 +740,7 @@ class ReadResourceResult(
  * Servers may issue this without any previous subscription from the client.
  */
 @Serializable
-class ResourceListChangedNotification : ServerNotification {
+public class ResourceListChangedNotification : ServerNotification {
     override val method: Method = Method.Defined.NotificationsResourcesListChanged
 }
 
@@ -749,7 +748,7 @@ class ResourceListChangedNotification : ServerNotification {
  * Sent from the client to request resources/updated notifications from the server whenever a particular resource changes.
  */
 @Serializable
-data class SubscribeRequest(
+public data class SubscribeRequest(
     /**
      * The URI of the resource to subscribe to. The URI can use any protocol; it is up to the server how to interpret it.
      */
@@ -763,7 +762,7 @@ data class SubscribeRequest(
  * Sent from the client to request cancellation of resources/updated notifications from the server. This should follow a previous resources/subscribe request.
  */
 @Serializable
-data class UnsubscribeRequest(
+public data class UnsubscribeRequest(
     /**
      * The URI of the resource to unsubscribe from.
      */
@@ -777,7 +776,7 @@ data class UnsubscribeRequest(
  * A notification from the server to the client, informing it that a resource has changed and may need to be read again. This should only be sent if the client previously sent a resources/subscribe request.
  */
 @Serializable
-data class ResourceUpdatedNotification(
+public data class ResourceUpdatedNotification(
     /**
      * The URI of the resource that has been updated. This might be a sub-resource of the one that the client actually subscribed to.
      */
@@ -792,7 +791,7 @@ data class ResourceUpdatedNotification(
  * Describes an argument that a prompt can accept.
  */
 @Serializable
-data class PromptArgument(
+public data class PromptArgument(
     /**
      * The name of the argument.
      */
@@ -811,26 +810,26 @@ data class PromptArgument(
  * A prompt or prompt template that the server offers.
  */
 @Serializable
-class Prompt(
+public class Prompt(
     /**
      * The name of the prompt or prompt template.
      */
-    val name: String,
+    public val name: String,
     /**
      * An optional description of what this prompt provides
      */
-    val description: String?,
+    public val description: String?,
     /**
      * A list of arguments to use for templating the prompt.
      */
-    val arguments: List<PromptArgument>?,
+    public val arguments: List<PromptArgument>?,
 )
 
 /**
  * Sent from the client to request a list of prompts and prompt templates the server has.
  */
 @Serializable
-data class ListPromptsRequest(
+public data class ListPromptsRequest(
     override val cursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject
 ) : ClientRequest, PaginatedRequest {
@@ -841,8 +840,8 @@ data class ListPromptsRequest(
  * The server's response to a prompts/list request from the client.
  */
 @Serializable
-class ListPromptsResult(
-    val prompts: List<Prompt>,
+public class ListPromptsResult(
+    public val prompts: List<Prompt>,
     override val nextCursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult, PaginatedResult
@@ -851,7 +850,7 @@ class ListPromptsResult(
  * Used by the client to get a prompt provided by the server.
  */
 @Serializable
-data class GetPromptRequest(
+public data class GetPromptRequest(
     /**
      * The name of the prompt or prompt template.
      */
@@ -871,21 +870,21 @@ data class GetPromptRequest(
  * Represents the content of a prompt message.
  */
 @Serializable(with = PromptMessageContentPolymorphicSerializer::class)
-sealed interface PromptMessageContent {
-    val type: String
+public sealed interface PromptMessageContent {
+    public val type: String
 }
 
 /**
  * Represents prompt message content that is either text or an image.
  */
 @Serializable(with = PromptMessageContentTextOrImagePolymorphicSerializer::class)
-sealed interface PromptMessageContentTextOrImage : PromptMessageContent
+public sealed interface PromptMessageContentTextOrImage : PromptMessageContent
 
 /**
  * Text provided to or from an LLM.
  */
 @Serializable
-data class TextContent(
+public data class TextContent(
     /**
      * The text content of the message.
      */
@@ -893,8 +892,8 @@ data class TextContent(
 ) : PromptMessageContentTextOrImage {
     override val type: String = TYPE
 
-    companion object {
-        const val TYPE = "text"
+    public companion object {
+        public const val TYPE: String = "text"
     }
 }
 
@@ -902,7 +901,7 @@ data class TextContent(
  * An image provided to or from an LLM.
  */
 @Serializable
-data class ImageContent(
+public data class ImageContent(
     /**
      * The base64-encoded image data.
      */
@@ -915,8 +914,8 @@ data class ImageContent(
 ) : PromptMessageContentTextOrImage {
     override val type: String = TYPE
 
-    companion object {
-        const val TYPE = "image"
+    public companion object {
+        public const val TYPE: String = "image"
     }
 }
 
@@ -924,7 +923,7 @@ data class ImageContent(
  * An image provided to or from an LLM.
  */
 @Serializable
-data class UnknownContent(
+public data class UnknownContent(
     override val type: String,
 ) : PromptMessageContentTextOrImage
 
@@ -932,13 +931,13 @@ data class UnknownContent(
  * The contents of a resource, embedded into a prompt or tool call result.
  */
 @Serializable
-data class EmbeddedResource(
+public data class EmbeddedResource(
     val resource: ResourceContents,
 ) : PromptMessageContent {
     override val type: String = TYPE
 
-    companion object {
-        const val TYPE = "resource"
+    public companion object {
+        public const val TYPE: String = "resource"
     }
 }
 
@@ -947,7 +946,7 @@ data class EmbeddedResource(
  */
 @Suppress("EnumEntryName")
 @Serializable
-enum class Role {
+public enum class Role {
     user, assistant,
 }
 
@@ -955,7 +954,7 @@ enum class Role {
  * Describes a message returned as part of a prompt.
  */
 @Serializable
-data class PromptMessage(
+public data class PromptMessage(
     val role: Role,
     val content: PromptMessageContent,
 )
@@ -964,12 +963,12 @@ data class PromptMessage(
  * The server's response to a prompts/get request from the client.
  */
 @Serializable
-class GetPromptResult(
+public class GetPromptResult(
     /**
      * An optional description for the prompt.
      */
-    val description: String?,
-    val messages: List<PromptMessage>,
+    public val description: String?,
+    public val messages: List<PromptMessage>,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult
 
@@ -978,7 +977,7 @@ class GetPromptResult(
  * Servers may issue this without any previous subscription from the client.
  */
 @Serializable
-class PromptListChangedNotification : ServerNotification {
+public class PromptListChangedNotification : ServerNotification {
     override val method: Method = Method.Defined.NotificationsPromptsListChanged
 }
 
@@ -987,7 +986,7 @@ class PromptListChangedNotification : ServerNotification {
  * Definition for a tool the client can call.
  */
 @Serializable
-data class Tool(
+public data class Tool(
     /**
      * The name of the tool.
      */
@@ -1002,7 +1001,7 @@ data class Tool(
     val inputSchema: Input,
 ) {
     @Serializable
-    data class Input(
+    public data class Input(
         val properties: JsonObject = EmptyJsonObject,
     ) {
         val type: String = "object"
@@ -1013,7 +1012,7 @@ data class Tool(
  * Sent from the client to request a list of tools the server has.
  */
 @Serializable
-data class ListToolsRequest(
+public data class ListToolsRequest(
     override val cursor: Cursor? = null,
     override val _meta: JsonObject = EmptyJsonObject
 ) : ClientRequest, PaginatedRequest {
@@ -1024,8 +1023,8 @@ data class ListToolsRequest(
  * The server's response to a tools/list request from the client.
  */
 @Serializable
-class ListToolsResult(
-    val tools: List<Tool>,
+public class ListToolsResult(
+    public val tools: List<Tool>,
     override val nextCursor: Cursor?,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult, PaginatedResult
@@ -1034,16 +1033,16 @@ class ListToolsResult(
  * The server's response to a tool call.
  */
 @Serializable
-sealed interface CallToolResultBase : ServerResult {
-    val content: List<PromptMessageContent>
-    val isError: Boolean? get() = false
+public sealed interface CallToolResultBase : ServerResult {
+    public val content: List<PromptMessageContent>
+    public val isError: Boolean? get() = false
 }
 
 /**
  * The server's response to a tool call.
  */
 @Serializable
-class CallToolResult(
+public class CallToolResult(
     override val content: List<PromptMessageContent>,
     override val isError: Boolean? = false,
     override val _meta: JsonObject = EmptyJsonObject,
@@ -1053,18 +1052,18 @@ class CallToolResult(
  * [CallToolResult] extended with backwards compatibility to protocol version 2024-10-07.
  */
 @Serializable
-class CompatibilityCallToolResult(
+public class CompatibilityCallToolResult(
     override val content: List<PromptMessageContent>,
     override val isError: Boolean? = false,
     override val _meta: JsonObject = EmptyJsonObject,
-    val toolResult: JsonObject = EmptyJsonObject,
+    public val toolResult: JsonObject = EmptyJsonObject,
 ) : CallToolResultBase
 
 /**
  * Used by the client to invoke a tool provided by the server.
  */
 @Serializable
-data class CallToolRequest(
+public data class CallToolRequest(
     val name: String,
     val arguments: JsonObject = EmptyJsonObject,
     override val _meta: JsonObject = EmptyJsonObject,
@@ -1077,7 +1076,7 @@ data class CallToolRequest(
  * Servers may issue this without any previous subscription from the client.
  */
 @Serializable
-class ToolListChangedNotification : ServerNotification {
+public class ToolListChangedNotification : ServerNotification {
     override val method: Method = Method.Defined.NotificationsToolsListChanged
 }
 
@@ -1087,7 +1086,7 @@ class ToolListChangedNotification : ServerNotification {
  */
 @Suppress("EnumEntryName")
 @Serializable
-enum class LoggingLevel {
+public enum class LoggingLevel {
     debug,
     info,
     notice,
@@ -1105,7 +1104,7 @@ enum class LoggingLevel {
  * the server MAY decide which messages to send automatically.
  */
 @Serializable
-data class LoggingMessageNotification(
+public data class LoggingMessageNotification(
     /**
      * The severity of this log message.
      */
@@ -1126,7 +1125,7 @@ data class LoggingMessageNotification(
      * A request from the client to the server to enable or adjust logging.
      */
     @Serializable
-    data class SetLevelRequest(
+    public data class SetLevelRequest(
         /**
          * The level of logging that the client wants to receive from the server. The server should send all logs at this level and higher (i.e., more severe) to the client as notifications/logging/message.
          */
@@ -1144,7 +1143,7 @@ data class LoggingMessageNotification(
  * Hints to use for model selection.
  */
 @Serializable
-data class ModelHint(
+public data class ModelHint(
     /**
      * A hint for a model name.
      */
@@ -1156,23 +1155,23 @@ data class ModelHint(
  */
 @Suppress("CanBeParameter")
 @Serializable
-class ModelPreferences(
+public class ModelPreferences(
     /**
      * Optional hints to use for model selection.
      */
-    val hints: List<ModelHint>?,
+    public val hints: List<ModelHint>?,
     /**
      * How much to prioritize cost when selecting a model.
      */
-    val costPriority: Double?,
+    public val costPriority: Double?,
     /**
      * How much to prioritize sampling speed (latency) when selecting a model.
      */
-    val speedPriority: Double?,
+    public val speedPriority: Double?,
     /**
      * How much to prioritize intelligence and capabilities when selecting a model.
      */
-    val intelligencePriority: Double?,
+    public val intelligencePriority: Double?,
 ) {
     init {
         require(costPriority == null || costPriority in 0.0..1.0) {
@@ -1193,7 +1192,7 @@ class ModelPreferences(
  * Describes a message issued to or received from an LLM API.
  */
 @Serializable
-data class SamplingMessage(
+public data class SamplingMessage(
     val role: Role,
     val content: PromptMessageContentTextOrImage,
 )
@@ -1205,7 +1204,7 @@ data class SamplingMessage(
  * (human in the loop) and decide whether to approve it.
  */
 @Serializable
-data class CreateMessageRequest(
+public data class CreateMessageRequest(
     val messages: List<SamplingMessage>,
     /**
      * An optional system prompt the server wants to use it for sampling. The client MAY modify or omit this prompt.
@@ -1234,31 +1233,31 @@ data class CreateMessageRequest(
     override val method: Method = Method.Defined.SamplingCreateMessage
 
     @Serializable
-    enum class IncludeContext { none, thisServer, allServers }
+    public enum class IncludeContext { none, thisServer, allServers }
 }
 
 @Serializable(with = StopReasonSerializer::class)
-sealed interface StopReason {
-    val value: String
+public sealed interface StopReason {
+    public val value: String
 
     @Serializable
-    data object EndTurn : StopReason {
+    public data object EndTurn : StopReason {
         override val value: String = "endTurn"
     }
 
     @Serializable
-    data object StopSequence : StopReason {
+    public data object StopSequence : StopReason {
         override val value: String = "stopSequence"
     }
 
     @Serializable
-    data object MaxTokens : StopReason {
+    public data object MaxTokens : StopReason {
         override val value: String = "maxTokens"
     }
 
     @Serializable
     @JvmInline
-    value class Other(override val value: String) : StopReason
+    public value class Other(override val value: String) : StopReason
 }
 
 /**
@@ -1267,7 +1266,7 @@ sealed interface StopReason {
  * (human in the loop) and decide whether to allow the server to see it.
  */
 @Serializable
-data class CreateMessageResult(
+public data class CreateMessageResult(
     /**
      * The name of the model that generated the message.
      */
@@ -1283,15 +1282,15 @@ data class CreateMessageResult(
 
 /* Autocomplete */
 @Serializable(with = ReferencePolymorphicSerializer::class)
-sealed interface Reference {
-    val type: String
+public sealed interface Reference {
+    public val type: String
 }
 
 /**
  * A reference to a resource or resource template definition.
  */
 @Serializable
-data class ResourceReference(
+public data class ResourceReference(
     /**
      * The URI or URI template of the resource.
      */
@@ -1299,8 +1298,8 @@ data class ResourceReference(
 ) : Reference {
     override val type: String = TYPE
 
-    companion object {
-        const val TYPE = "ref/resource"
+    public companion object {
+        public const val TYPE: String = "ref/resource"
     }
 }
 
@@ -1308,7 +1307,7 @@ data class ResourceReference(
  * Identifies a prompt.
  */
 @Serializable
-data class PromptReference(
+public data class PromptReference(
     /**
      * The name of the prompt or prompt template
      */
@@ -1316,8 +1315,8 @@ data class PromptReference(
 ) : Reference {
     override val type: String = TYPE
 
-    companion object {
-        const val TYPE = "ref/prompt"
+    public companion object {
+        public const val TYPE: String = "ref/prompt"
     }
 }
 
@@ -1325,7 +1324,7 @@ data class PromptReference(
  * Identifies a prompt.
  */
 @Serializable
-data class UnknownReference(
+public data class UnknownReference(
     override val type: String,
 ) : Reference
 
@@ -1333,7 +1332,7 @@ data class UnknownReference(
  * A request from the client to the server to ask for completion options.
  */
 @Serializable
-data class CompleteRequest(
+public data class CompleteRequest(
     val ref: Reference,
     /**
      * The argument's information
@@ -1344,7 +1343,7 @@ data class CompleteRequest(
     override val method: Method = Method.Defined.CompletionComplete
 
     @Serializable
-    data class Argument(
+    public data class Argument(
         /**
          * The name of the argument
          */
@@ -1360,25 +1359,25 @@ data class CompleteRequest(
  * The server's response to a completion/complete request
  */
 @Serializable
-data class CompleteResult(
+public data class CompleteResult(
     val completion: Completion,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ServerResult {
     @Suppress("CanBeParameter")
     @Serializable
-    class Completion(
+    public class Completion(
         /**
          * A list of completion values. Must not exceed 100 items.
          */
-        val values: List<String>,
+        public val values: List<String>,
         /**
          * The total number of completion options available. This can exceed the number of values actually sent in the response.
          */
-        val total: Int?,
+        public val total: Int?,
         /**
          * Indicates whether there are additional completion options beyond those provided in the current response, even if the exact total is unknown.
          */
-        val hasMore: Boolean?,
+        public val hasMore: Boolean?,
     ) {
         init {
             require(values.size <= 100) {
@@ -1393,7 +1392,7 @@ data class CompleteResult(
  * Represents a root directory or file that the server can operate on.
  */
 @Serializable
-data class Root(
+public data class Root(
     /**
      * The URI identifying the root. This *must* start with file:// for now.
      */
@@ -1415,7 +1414,7 @@ data class Root(
  * Sent from the server to request a list of root URIs from the client.
  */
 @Serializable
-class ListRootsRequest(override val _meta: JsonObject = EmptyJsonObject) : ServerRequest, WithMeta {
+public class ListRootsRequest(override val _meta: JsonObject = EmptyJsonObject) : ServerRequest, WithMeta {
     override val method: Method = Method.Defined.RootsList
 }
 
@@ -1423,8 +1422,8 @@ class ListRootsRequest(override val _meta: JsonObject = EmptyJsonObject) : Serve
  * The client's response to a roots/list request from the server.
  */
 @Serializable
-class ListRootsResult(
-    val roots: List<Root>,
+public class ListRootsResult(
+    public val roots: List<Root>,
     override val _meta: JsonObject = EmptyJsonObject,
 ) : ClientResult
 
@@ -1432,7 +1431,7 @@ class ListRootsResult(
  * A notification from the client to the server, informing it that the list of roots has changed.
  */
 @Serializable
-class RootsListChangedNotification : ClientNotification {
+public class RootsListChangedNotification : ClientNotification {
     override val method: Method = Method.Defined.NotificationsRootsListChanged
 }
 
@@ -1443,6 +1442,6 @@ class RootsListChangedNotification : ClientNotification {
  * @property message The error message.
  * @property data Additional error data as a JSON object.
  */
-class McpError(val code: Int, message: String, val data: JsonObject = EmptyJsonObject) : Exception() {
+public class McpError(public val code: Int, message: String, public val data: JsonObject = EmptyJsonObject) : Exception() {
     override val message: String = "MCP error ${code}: $message"
 }

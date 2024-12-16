@@ -12,7 +12,7 @@ import kotlin.properties.Delegates
 /**
  * Client transport for WebSocket: this will connect to a server over the WebSocket protocol.
  */
-class WebSocketClientTransport(
+public class WebSocketClientTransport(
     private val client: HttpClient,
     private val urlString: String?,
     private val requestBuilder: HttpRequestBuilder.() -> Unit = {},

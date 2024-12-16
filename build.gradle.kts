@@ -1,4 +1,5 @@
 import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -207,6 +208,8 @@ val generateLibVersionTask =
     tasks.register<GenerateLibVersionTask>("generateLibVersion", version.toString(), sourcesDir)
 
 kotlin {
+    explicitApi = ExplicitApiMode.Strict
+
     jvmToolchain(21)
 
     sourceSets {

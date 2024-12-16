@@ -21,14 +21,14 @@ internal const val SESSION_ID_PARAM = "sessionId"
  *
  * Creates a new SSE server transport, which will direct the client to POST messages to the relative or absolute URL identified by `_endpoint`.
  */
-class SSEServerTransport(
+public class SSEServerTransport(
     private val endpoint: String,
     private val session: ServerSSESession,
 ) : Transport {
     private val initialized = AtomicBoolean(false)
 
     @OptIn(ExperimentalUuidApi::class)
-    val sessionId: String = Uuid.random().toString()
+    public val sessionId: String = Uuid.random().toString()
 
     override var onClose: (() -> Unit)? = null
     override var onError: ((Throwable) -> Unit)? = null
@@ -62,7 +62,7 @@ class SSEServerTransport(
      *
      * This should be called when a POST request is made to send a message to the server.
      */
-    suspend fun handlePostMessage(call: ApplicationCall) {
+    public suspend fun handlePostMessage(call: ApplicationCall) {
         if (!initialized.get()) {
             val message = "SSE connection not established"
             call.respondText(message, status = HttpStatusCode.InternalServerError)
@@ -96,7 +96,7 @@ class SSEServerTransport(
      * Handle a client message, regardless of how it arrived.
      * This can be used to inform the server of messages that arrive via a means different from HTTP POST.
      */
-    suspend fun handleMessage(message: String) {
+    public suspend fun handleMessage(message: String) {
         try {
             val parsedMessage = McpJson.decodeFromString<JSONRPCMessage>(message)
             onMessage?.invoke(parsedMessage)

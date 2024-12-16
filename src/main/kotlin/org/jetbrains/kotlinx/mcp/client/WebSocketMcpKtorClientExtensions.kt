@@ -13,7 +13,7 @@ import org.jetbrains.kotlinx.mcp.shared.IMPLEMENTATION_NAME
  * @param requestBuilder Optional lambda to configure the HTTP request.
  * @return A [WebSocketClientTransport] configured for MCP communication.
  */
-fun HttpClient.mcpWebSocketTransport(
+public fun HttpClient.mcpWebSocketTransport(
     urlString: String? = null,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): WebSocketClientTransport = WebSocketClientTransport(this, urlString, requestBuilder)
@@ -25,7 +25,7 @@ fun HttpClient.mcpWebSocketTransport(
  * @param requestBuilder Optional lambda to configure the HTTP request.
  * @return A connected [Client] ready for MCP communication.
  */
-suspend fun HttpClient.mcpWebSocket(
+public suspend fun HttpClient.mcpWebSocket(
     urlString: String? = null,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},
 ): Client {

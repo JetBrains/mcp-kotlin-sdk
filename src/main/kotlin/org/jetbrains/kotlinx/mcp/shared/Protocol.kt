@@ -27,6 +27,7 @@ import kotlinx.serialization.serializer
 import org.jetbrains.kotlinx.mcp.fromJSON
 import org.jetbrains.kotlinx.mcp.toJSON
 import kotlin.collections.get
+import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -38,7 +39,7 @@ internal const val IMPLEMENTATION_NAME = "mcp-ktor"
 /**
  * Callback for progress notifications.
  */
-typealias ProgressCallback = (Progress) -> Unit
+public typealias ProgressCallback = (Progress) -> Unit
 
 @OptIn(ExperimentalSerializationApi::class)
 @PublishedApi
@@ -55,7 +56,7 @@ internal val McpJson: Json by lazy {
 /**
  * Additional initialization options.
  */
-open class ProtocolOptions(
+public open class ProtocolOptions(
     /**
      * Whether to restrict emitted requests to only those that the remote side has indicated
      * that they can handle, through their advertised capabilities.
@@ -66,20 +67,20 @@ open class ProtocolOptions(
      * Currently this defaults to false, for backwards compatibility with SDK versions
      * that did not advertise capabilities correctly. In future, this will default to true.
      */
-    var enforceStrictCapabilities: Boolean = false,
+    public var enforceStrictCapabilities: Boolean = false,
 
-    var timeout: Duration = DEFAULT_REQUEST_TIMEOUT
+    public var timeout: Duration = DEFAULT_REQUEST_TIMEOUT,
 )
 
 /**
  * The default request timeout.
  */
-val DEFAULT_REQUEST_TIMEOUT: Duration = 60000.milliseconds
+public val DEFAULT_REQUEST_TIMEOUT: Duration = 60000.milliseconds
 
 /**
  * Options that can be given per request.
  */
-data class RequestOptions(
+public data class RequestOptions(
     /**
      * If set, requests progress notifications from the remote end (if supported).
      * When progress notifications are received, this callback will be invoked.
@@ -92,13 +93,13 @@ data class RequestOptions(
      *
      * If not specified, `DEFAULT_REQUEST_TIMEOUT` will be used as the timeout.
      */
-    val timeout: Duration = DEFAULT_REQUEST_TIMEOUT
+    val timeout: Duration = DEFAULT_REQUEST_TIMEOUT,
 )
 
 /**
  * Extra data given to request handlers.
  */
-class RequestHandlerExtra()
+public class RequestHandlerExtra()
 
 internal val COMPLETED = CompletableDeferred(Unit).also { it.complete(Unit) }
 
@@ -106,16 +107,16 @@ internal val COMPLETED = CompletableDeferred(Unit).also { it.complete(Unit) }
  * Implements MCP protocol framing on top of a pluggable transport, including
  * features like request/response linking, notifications, and progress.
  */
-abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification, SendResultT : RequestResult>(
-    @PublishedApi internal val _options: ProtocolOptions?
+public abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification, SendResultT : RequestResult>(
+    @PublishedApi internal val options: ProtocolOptions?,
 ) {
-    var transport: Transport? = null
+    public var transport: Transport? = null
         private set
 
     @PublishedApi
     internal val requestHandlers: MutableMap<String, suspend (request: JSONRPCRequest, extra: RequestHandlerExtra) -> SendResultT?> =
         mutableMapOf()
-    val notificationHandlers: MutableMap<String, suspend (notification: JSONRPCNotification) -> Unit> =
+    public val notificationHandlers: MutableMap<String, suspend (notification: JSONRPCNotification) -> Unit> =
         mutableMapOf()
 
     @PublishedApi
@@ -130,24 +131,25 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * This is invoked when close() is called as well.
      */
-    open fun onclose() {}
+    public open fun onclose() {}
 
     /**
      * Callback for when an error occurs.
      *
      * Note that errors are not necessarily fatal they are used for reporting any kind of exceptional condition out of band.
      */
-    open fun onerror(error: Throwable) {}
+    public open fun onerror(error: Throwable) {}
 
     /**
      * A handler to invoke for any request types that do not have their own handler installed.
      */
-    var fallbackRequestHandler: (suspend (request: JSONRPCRequest, extra: RequestHandlerExtra) -> SendResultT?)? = null
+    public var fallbackRequestHandler: (suspend (request: JSONRPCRequest, extra: RequestHandlerExtra) -> SendResultT?)? =
+        null
 
     /**
      * A handler to invoke for any notification types that do not have their own handler installed.
      */
-    var fallbackNotificationHandler: (suspend (notification: JSONRPCNotification) -> Unit)? = null
+    public var fallbackNotificationHandler: (suspend (notification: JSONRPCNotification) -> Unit)? = null
 
     init {
         setNotificationHandler<ProgressNotification>(Method.Defined.NotificationsProgress) { notification ->
@@ -166,7 +168,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * The Protocol object assumes ownership of the Transport, replacing any callbacks that have already been set, and expects that it is the only user of the Transport instance going forward.
      */
-    open suspend fun connect(transport: Transport) {
+    public open suspend fun connect(transport: Transport) {
         this.transport = transport
         transport.onClose = {
             this.onClose()
@@ -258,13 +260,15 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
         } catch (cause: Throwable) {
             LOGGER.error(cause) { "Error handling request: ${request.method} (id: ${request.id})" }
 
-            transport!!.send(JSONRPCResponse(
-                id = request.id,
-                error = JSONRPCError(
-                    ErrorCode.Defined.InternalError,
-                    message = cause.message ?: "Internal error",
+            transport!!.send(
+                JSONRPCResponse(
+                    id = request.id,
+                    error = JSONRPCError(
+                        ErrorCode.Defined.InternalError,
+                        message = cause.message ?: "Internal error",
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -314,7 +318,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
     /**
      * Closes the connection.
      */
-    suspend fun close() {
+    public suspend fun close() {
         transport?.close()
     }
 
@@ -323,7 +327,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * This should be implemented by subclasses.
      */
-    abstract fun assertCapabilityForMethod(method: Method)
+    protected abstract fun assertCapabilityForMethod(method: Method)
 
     /**
      * A method to check if a notification is supported by the local side, for the given method to be sent.
@@ -337,14 +341,14 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * This should be implemented by subclasses.
      */
-    abstract fun assertRequestHandlerCapability(method: Method)
+    public abstract fun assertRequestHandlerCapability(method: Method)
 
     /**
      * Sends a request and wait for a response.
      *
      * Do not use this method to emit notifications! Use notification() instead.
      */
-    suspend fun <T : RequestResult> request(
+    public suspend fun <T : RequestResult> request(
         request: SendRequestT,
         options: RequestOptions? = null,
     ): T {
@@ -352,7 +356,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
         val result = CompletableDeferred<T>()
         val transport = this@Protocol.transport ?: throw Error("Not connected")
 
-        if (_options?.enforceStrictCapabilities == true) {
+        if (this@Protocol.options?.enforceStrictCapabilities == true) {
             assertCapabilityForMethod(request.method)
         }
 
@@ -364,7 +368,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
             progressHandlers[messageId] = options.onProgress
         }
 
-        responseHandlers.set(messageId, { response, error ->
+        responseHandlers[messageId] = set@{ response, error ->
             if (error != null) {
                 result.completeExceptionally(error)
                 return@set
@@ -381,7 +385,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
             } catch (error: Throwable) {
                 result.completeExceptionally(error)
             }
-        })
+        }
 
         val cancel: suspend (Throwable) -> Unit = { reason: Throwable ->
             responseHandlers.remove(messageId)
@@ -423,7 +427,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
     /**
      * Emits a notification, which is a one-way message that does not expect a response.
      */
-    suspend fun notification(notification: SendNotificationT) {
+    public suspend fun notification(notification: SendNotificationT) {
         LOGGER.trace { "Sending notification: ${notification.method}" }
         val transport = this.transport ?: error("Not connected")
         assertNotificationCapability(notification.method)
@@ -440,18 +444,27 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * Note that this will replace any previous request handler for the same method.
      */
-    inline fun <reified T : Request> setRequestHandler(
+    public inline fun <reified T : Request> setRequestHandler(
         method: Method,
-        noinline block: suspend (T, RequestHandlerExtra) -> SendResultT?
+        noinline block: suspend (T, RequestHandlerExtra) -> SendResultT?,
+    ) {
+        setRequestHandler(typeOf<T>(), method, block)
+    }
+
+    @PublishedApi
+    internal fun <T : Request> setRequestHandler(
+        requestType: KType,
+        method: Method,
+        block: suspend (T, RequestHandlerExtra) -> SendResultT?,
     ) {
         assertRequestHandlerCapability(method)
 
-        val type = typeOf<T>()
-        val serializer = McpJson.serializersModule.serializer(type)
+        val serializer = McpJson.serializersModule.serializer(requestType)
 
         requestHandlers[method.value] = { request, extraHandler ->
             val result = request.params?.let { McpJson.decodeFromJsonElement(serializer, it) }
             val response = if (result != null) {
+                @Suppress("UNCHECKED_CAST")
                 block(result as T, extraHandler)
             } else {
                 EmptyRequestResult()
@@ -465,7 +478,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
     /**
      * Removes the request handler for the given method.
      */
-    fun removeRequestHandler(method: Method) {
+    public fun removeRequestHandler(method: Method) {
         requestHandlers.remove(method.value)
     }
 
@@ -474,7 +487,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
      *
      * Note that this will replace any previous notification handler for the same method.
      */
-    fun <T : Notification> setNotificationHandler(method: Method, handler: (notification: T) -> Deferred<Unit>) {
+    public fun <T : Notification> setNotificationHandler(method: Method, handler: (notification: T) -> Deferred<Unit>) {
         this.notificationHandlers[method.value] = {
             @Suppress("UNCHECKED_CAST")
             handler(it.fromJSON() as T)
@@ -484,7 +497,7 @@ abstract class Protocol<SendRequestT : Request, SendNotificationT : Notification
     /**
      * Removes the notification handler for the given method.
      */
-    fun removeNotificationHandler(method: Method) {
+    public fun removeNotificationHandler(method: Method) {
         this.notificationHandlers.remove(method.value)
     }
 }

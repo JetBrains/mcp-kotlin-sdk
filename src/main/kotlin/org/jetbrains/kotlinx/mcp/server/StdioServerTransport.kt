@@ -17,9 +17,9 @@ import kotlin.coroutines.CoroutineContext
  *
  * Reads from System.in and writes to System.out.
  */
-class StdioServerTransport(
+public class StdioServerTransport(
     private val inputStream: BufferedInputStream = BufferedInputStream(System.`in`),
-    private val outputStream: PrintStream = System.out
+    outputStream: PrintStream = System.out
 ) : Transport {
     private val logger = KotlinLogging.logger {}
     override var onClose: (() -> Unit)? = null

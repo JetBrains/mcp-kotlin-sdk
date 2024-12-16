@@ -15,7 +15,7 @@ import kotlin.time.Duration
  * @param  requestBuilder Optional lambda to configure the HTTP request.
  * @return A [SSEClientTransport] configured for MCP communication.
  */
-fun HttpClient.mcpSseTransport(
+public fun HttpClient.mcpSseTransport(
     urlString: String? = null,
     reconnectionTime: Duration? = null,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},
@@ -29,7 +29,7 @@ fun HttpClient.mcpSseTransport(
  * @param requestBuilder Optional lambda to configure the HTTP request.
  * @return A connected [Client] ready for MCP communication.
  */
-suspend fun HttpClient.mcpSse(
+public suspend fun HttpClient.mcpSse(
     urlString: String? = null,
     reconnectionTime: Duration? = null,
     requestBuilder: HttpRequestBuilder.() -> Unit = {},

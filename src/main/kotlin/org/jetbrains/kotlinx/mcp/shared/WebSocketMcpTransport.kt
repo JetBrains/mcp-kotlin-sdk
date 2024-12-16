@@ -21,7 +21,7 @@ internal const val MCP_SUBPROTOCOL = "mcp"
  * Abstract class representing a WebSocket transport for the Model Context Protocol (MCP).
  * Handles communication over a WebSocket session.
  */
-abstract class WebSocketMcpTransport : Transport {
+public abstract class WebSocketMcpTransport : Transport {
     private val scope by lazy {
         CoroutineScope(session.coroutineContext + SupervisorJob())
     }

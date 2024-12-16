@@ -23,7 +23,7 @@ import kotlin.text.Charsets.UTF_8
  * @param input The input stream where messages are received.
  * @param output The output stream where messages are sent.
  */
-class StdioClientTransport(
+public class StdioClientTransport(
     private val input: InputStream,
     private val output: OutputStream
 ) : Transport {

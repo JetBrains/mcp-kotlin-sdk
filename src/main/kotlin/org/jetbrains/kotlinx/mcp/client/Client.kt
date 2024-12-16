@@ -17,8 +17,8 @@ import org.jetbrains.kotlinx.mcp.shared.Transport
  * @property capabilities The capabilities this client supports.
  * @property enforceStrictCapabilities Whether to strictly enforce capabilities when interacting with the server.
  */
-class ClientOptions(
-    val capabilities: ClientCapabilities = ClientCapabilities(),
+public class ClientOptions(
+    public val capabilities: ClientCapabilities = ClientCapabilities(),
     enforceStrictCapabilities: Boolean = true,
 ) : ProtocolOptions(enforceStrictCapabilities = enforceStrictCapabilities)
 
@@ -33,7 +33,7 @@ class ClientOptions(
  * @param clientInfo Information about the client implementation (name, version).
  * @param options Configuration options for this client.
  */
-open class Client(
+public open class Client(
     private val clientInfo: Implementation,
     options: ClientOptions = ClientOptions(),
 ) : Protocol<ClientRequest, ClientNotification, ClientResult>(options) {
@@ -95,7 +95,7 @@ open class Client(
      *
      * @return The server's capabilities, or `null` if initialization is not yet complete.
      */
-    fun getServerCapabilities(): ServerCapabilities? {
+    public fun getServerCapabilities(): ServerCapabilities? {
         return serverCapabilities
     }
 
@@ -104,7 +104,7 @@ open class Client(
      *
      * @return Information about the server's implementation, or `null` if initialization is not yet complete.
      */
-    fun getServerVersion(): Implementation? {
+    public fun getServerVersion(): Implementation? {
         return serverVersion
     }
 
@@ -219,7 +219,7 @@ open class Client(
      * @param options Optional request options.
      * @throws IllegalStateException If the server does not support the ping method (unlikely).
      */
-    suspend fun ping(options: RequestOptions? = null): EmptyRequestResult {
+    public suspend fun ping(options: RequestOptions? = null): EmptyRequestResult {
         return request<EmptyRequestResult>(PingRequest(), options)
     }
 
@@ -231,7 +231,7 @@ open class Client(
      * @return The completion result returned by the server, or `null` if none.
      * @throws IllegalStateException If the server does not support prompts or completion.
      */
-    suspend fun complete(params: CompleteRequest, options: RequestOptions? = null): CompleteResult? {
+    public suspend fun complete(params: CompleteRequest, options: RequestOptions? = null): CompleteResult? {
         return request<CompleteResult>(params, options)
     }
 
@@ -242,7 +242,7 @@ open class Client(
      * @param options Optional request options.
      * @throws IllegalStateException If the server does not support logging.
      */
-    suspend fun setLoggingLevel(level: LoggingLevel, options: RequestOptions? = null): EmptyRequestResult {
+    public suspend fun setLoggingLevel(level: LoggingLevel, options: RequestOptions? = null): EmptyRequestResult {
         return request<EmptyRequestResult>(SetLevelRequest(level), options)
     }
 
@@ -254,7 +254,7 @@ open class Client(
      * @return The requested prompt details, or `null` if not found.
      * @throws IllegalStateException If the server does not support prompts.
      */
-    suspend fun getPrompt(request: GetPromptRequest, options: RequestOptions? = null): GetPromptResult? {
+    public suspend fun getPrompt(request: GetPromptRequest, options: RequestOptions? = null): GetPromptResult? {
         return request<GetPromptResult>(request, options)
     }
 
@@ -266,7 +266,7 @@ open class Client(
      * @return The list of available prompts, or `null` if none.
      * @throws IllegalStateException If the server does not support prompts.
      */
-    suspend fun listPrompts(
+    public suspend fun listPrompts(
         request: ListPromptsRequest = ListPromptsRequest(),
         options: RequestOptions? = null,
     ): ListPromptsResult? {
@@ -281,7 +281,7 @@ open class Client(
      * @return The list of resources, or `null` if none.
      * @throws IllegalStateException If the server does not support resources.
      */
-    suspend fun listResources(
+    public suspend fun listResources(
         request: ListResourcesRequest = ListResourcesRequest(),
         options: RequestOptions? = null,
     ): ListResourcesResult? {
@@ -296,7 +296,7 @@ open class Client(
      * @return The list of resource templates, or `null` if none.
      * @throws IllegalStateException If the server does not support resources.
      */
-    suspend fun listResourceTemplates(
+    public suspend fun listResourceTemplates(
         request: ListResourceTemplatesRequest,
         options: RequestOptions? = null,
     ): ListResourceTemplatesResult? {
@@ -311,7 +311,10 @@ open class Client(
      * @return The resource content, or `null` if the resource is not found.
      * @throws IllegalStateException If the server does not support resources.
      */
-    suspend fun readResource(request: ReadResourceRequest, options: RequestOptions? = null): ReadResourceResult? {
+    public suspend fun readResource(
+        request: ReadResourceRequest,
+        options: RequestOptions? = null,
+    ): ReadResourceResult? {
         return request<ReadResourceResult>(request, options)
     }
 
@@ -322,7 +325,10 @@ open class Client(
      * @param options Optional request options.
      * @throws IllegalStateException If the server does not support resource subscriptions.
      */
-    suspend fun subscribeResource(request: SubscribeRequest, options: RequestOptions? = null): EmptyRequestResult {
+    public suspend fun subscribeResource(
+        request: SubscribeRequest,
+        options: RequestOptions? = null,
+    ): EmptyRequestResult {
         return request<EmptyRequestResult>(request, options)
     }
 
@@ -333,7 +339,10 @@ open class Client(
      * @param options Optional request options.
      * @throws IllegalStateException If the server does not support resource subscriptions.
      */
-    suspend fun unsubscribeResource(request: UnsubscribeRequest, options: RequestOptions? = null): EmptyRequestResult {
+    public suspend fun unsubscribeResource(
+        request: UnsubscribeRequest,
+        options: RequestOptions? = null,
+    ): EmptyRequestResult {
         return request<EmptyRequestResult>(request, options)
     }
 
@@ -347,7 +356,7 @@ open class Client(
      * @return The result of the tool call, or `null` if none.
      * @throws IllegalStateException If the server does not support tools.
      */
-    suspend fun callTool(
+    public suspend fun callTool(
         name: String,
         arguments: Map<String, Any?>,
         compatibility: Boolean = false,
@@ -380,7 +389,7 @@ open class Client(
      * @return The result of the tool call, or `null` if none.
      * @throws IllegalStateException If the server does not support tools.
      */
-    suspend fun callTool(
+    public suspend fun callTool(
         request: CallToolRequest,
         compatibility: Boolean = false,
         options: RequestOptions? = null,
@@ -400,7 +409,7 @@ open class Client(
      * @return The list of available tools, or `null` if none.
      * @throws IllegalStateException If the server does not support tools.
      */
-    suspend fun listTools(
+    public suspend fun listTools(
         request: ListToolsRequest = ListToolsRequest(),
         options: RequestOptions? = null,
     ): ListToolsResult? {
@@ -413,7 +422,7 @@ open class Client(
      *
      * @throws IllegalStateException If the client or server does not support roots.
      */
-    suspend fun sendRootsListChanged() {
+    public suspend fun sendRootsListChanged() {
         notification(RootsListChangedNotification())
     }
 }
