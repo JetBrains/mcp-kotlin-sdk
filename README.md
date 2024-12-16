@@ -11,6 +11,10 @@ The Model Context Protocol allows applications to provide context for LLMs in a 
 - Use standard transports like stdio, SSE, and WebSocket
 - Handle all MCP protocol messages and lifecycle events
 
+## Samples
+
+- [kotlin-mcp-server](./samples/kotlin-mcp-server): shows how to set up Kotlin MCP server with different tools and other features.
+
 ## Installation
 
 Add the JitPack repository to your build file:
