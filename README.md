@@ -1,3 +1,7 @@
+# This repository is moved
+
+The new repo is located here: [https://github.com/modelcontextprotocol/kotlin-sdk](https://github.com/modelcontextprotocol/kotlin-sdk)
+
 # MCP Kotlin SDK
 
 Kotlin implementation of the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), providing both client and server capabilities for integrating with LLM surfaces.
